@@ -15,7 +15,7 @@ public class Disjunction extends Binary {
 
     @Override
     protected String sign() {
-        return "∨";
+        return "\\vee";
     }
 
     @Override

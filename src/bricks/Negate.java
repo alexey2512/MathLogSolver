@@ -13,7 +13,7 @@ public class Negate extends Unary {
 
     @Override
     protected String sign() {
-        return "¬";
+        return "\\neg";
     }
 
 }

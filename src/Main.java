@@ -1,62 +1,81 @@
+import java.util.*;
 import bricks.*;
 import generate.*;
-import logs.State;
+import logs.*;
+import logs.Scheme;
 
-import java.util.*;
 
 public class Main {
 
-    public static void filter(int index, List<State> states, List<Integer> indexes) {
-        indexes.add(index);
-        State state = states.get(index);
-        if (state == State.MODUS_PONENS) {
-            filter(state.getCom(), states, indexes);
-            filter(state.getImp(), states, indexes);
+    static int outIndex;
+
+    public static void filter(int curIndex, List<Log> logs, Map<Integer, Integer> indexMap) {
+        if (logs.get(curIndex).getClass() == ModusPonens.class) {
+            ModusPonens log = (ModusPonens) logs.get(curIndex);
+            filter(log.getSrc(), logs, indexMap);
+            filter(log.getImp(), logs, indexMap);
+        }
+        if (!indexMap.containsKey(curIndex)) {
+            indexMap.put(curIndex, outIndex);
+            outIndex++;
         }
     }
 
-
     public static void main(String[] args) {
         Expression target = new Implication(
-                new Variable("A"),
-                new Variable("A")
+                new Conjunction(
+                        new Variable("A"),
+                        new Negate(new Variable("A"))
+                ),
+                new Variable("B")
         );
         List<Expression> proof = new ArrayList<>();
-        List<State> states = new ArrayList<>();
-        outer: do {
-            for (int k = 0; k < 10; k++) {
-                Expression[] exs = new Expression[]{
-                        Generator.randomGenerate(2),
-                        Generator.randomGenerate(2),
-                        Generator.randomGenerate(2)
-                };
-                Expression result = Generator.buildByScheme(k, exs);
-                proof.add(result);
-                State stateSCH = State.SCHEME;
-                stateSCH.setData(k, exs);
-                states.add(stateSCH);
-                if (proof.getLast().equals(target)) {
-                    break outer;
-                }
-                int size = proof.size();
-                for (int i = 0; i < size; i++) {
-                    int j = proof.size() - 1;
-                    if (proof.get(j).getClass() == Implication.class && proof.get(i).equals(((Binary) proof.get(j)).left)) {
-                        proof.add(((Binary) proof.get(j)).right);
-                        State stateMP = State.MODUS_PONENS;
-                        stateMP.setData(i, j);
-                        states.add(stateMP);
-                        if (proof.getLast().equals(target)) {
+        List<Log> logs = new ArrayList<>();
+        int schemeIndex = 0;
+        outer: while (true) {
+            Expression[] expressions = {
+                    Generator.randomGenerate(3),
+                    Generator.randomGenerate(3),
+                    Generator.randomGenerate(3)
+            };
+            Expression result = Generator.buildByScheme(schemeIndex, expressions);
+            proof.add(result);
+            logs.add(new Scheme(schemeIndex, expressions));
+            schemeIndex = (schemeIndex + 1) % 10;
+            if (proof.getLast().equals(target))
+                break;
+            int lastIndex = proof.size() - 1;
+            while (lastIndex < proof.size()) {
+                Expression last = proof.get(lastIndex);
+                for (int i = 0; i < lastIndex; i++) {
+                    if (last.getClass() == Implication.class &&
+                            ((Binary) last).left.equals(proof.get(i))) {
+                        proof.add(((Binary) last).right);
+                        logs.add(new ModusPonens(i, lastIndex));
+                        if (proof.getLast().equals(target))
                             break outer;
-                        }
                     }
                 }
+                lastIndex++;
             }
-        } while (true);
-
-        List<Integer> indexes = new ArrayList<>();
+        }
+        outIndex = 0;
+        Map<Integer, Integer> indexMap = new HashMap<>();
+        filter(proof.size() - 1, logs, indexMap);
+        System.out.println("$\\spt\\spt\\spo\\vdash " + target + "$\n");
+        System.out.println("$\\spo$\n");
         for (int i = 0; i < proof.size(); i++) {
-            System.out.println((i + 1) + ". " + proof.get(i) + " " + states.get(i).getLog());
+            if (indexMap.containsKey(i)) {
+                Expression e = proof.get(i);
+                Log log = logs.get(i);
+                if (log.getClass() == ModusPonens.class) {
+                    ModusPonens mp = (ModusPonens) log;
+                    mp.setSrc(indexMap.get(mp.getSrc()));
+                    mp.setImp(indexMap.get(mp.getImp()));
+                }
+                int newIndex = indexMap.get(i);
+                System.out.println((newIndex + 1) + ". $" + e + "$ " + log.getLog() + "\n");
+            }
         }
     }
 }

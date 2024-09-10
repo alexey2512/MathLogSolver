@@ -16,7 +16,7 @@ public class Conjunction extends Binary {
 
     @Override
     protected String sign() {
-        return "&";
+        return "\\&";
     }
 
     @Override

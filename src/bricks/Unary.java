@@ -22,7 +22,7 @@ public abstract class Unary implements Expression {
         if (withBraces) {
             sb.append('(');
         }
-        sb.append(sign());
+        sb.append(sign()).append(" ");
         expr.fastToString(sb, expr.priority() < priority());
         if (withBraces) {
             sb.append(')');

@@ -13,7 +13,7 @@ public class Implication extends Binary {
 
     @Override
     protected String sign() {
-        return "->";
+        return "\\rightarrow";
     }
 
 }

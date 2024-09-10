@@ -7,7 +7,7 @@ import java.util.*;
 public class Generator {
 
     private static final Random rand = new Random();
-    private static final List<String> variables = List.of("A");
+    private static final List<String> variables = List.of("A", "B");
 
     private Generator() {}
 
