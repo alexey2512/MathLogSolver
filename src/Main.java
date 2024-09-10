@@ -23,20 +23,18 @@ public class Main {
 
     public static void main(String[] args) {
         Expression target = new Implication(
-                new Conjunction(
-                        new Variable("A"),
-                        new Negate(new Variable("A"))
-                ),
-                new Variable("B")
+                new Variable("A"),
+                new Negate(new Negate(new Variable("A")))
         );
         List<Expression> proof = new ArrayList<>();
         List<Log> logs = new ArrayList<>();
         int schemeIndex = 0;
         outer: while (true) {
+            int maxDepth = 2;
             Expression[] expressions = {
-                    Generator.randomGenerate(3),
-                    Generator.randomGenerate(3),
-                    Generator.randomGenerate(3)
+                    Generator.randomGenerate(maxDepth),
+                    Generator.randomGenerate(maxDepth),
+                    Generator.randomGenerate(maxDepth)
             };
             Expression result = Generator.buildByScheme(schemeIndex, expressions);
             proof.add(result);
@@ -58,6 +56,7 @@ public class Main {
                 }
                 lastIndex++;
             }
+
         }
         outIndex = 0;
         Map<Integer, Integer> indexMap = new HashMap<>();
